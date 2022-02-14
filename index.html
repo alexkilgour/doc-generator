@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Example</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <p><a href="https://www.npmjs.com/package/@springernature/nature-header"><img src="https://img.shields.io/npm/v/@springernature/nature-header.svg" alt="NPM version"></a></p>
+<p>The Nature Hero component appears at the top of the page on all Nature journal sites.</p>
+<p>It consists of:</p>
+<ul>
+<li>an <code>&lt;h2&gt;</code> article title which links to the full article</li>
+<li>a summary of the article, which appears underneath the title</li>
+<li>an image</li>
+</ul>
+<p>Nature editors decide on the content and image that goes in the Hero component on each journal site. They can add and update this content in a tool called PubServ. </p>
+<h2>When to use this component</h2>
+<p>Use the Nature Hero component for the main featured story on Nature journal sites.</p>
+<h2>Installation</h2>
+<p>To use the Hero component, enter the following command in your Terminal:</p>
+<pre><code class="hljs language-plaintext">npm install @springernature/nature-hero
+</code></pre>
+<p>Import the installed component code in your <code>scss</code> file:</p>
+<pre><code class="hljs language-scss"><span class="hljs-keyword">@import</span> <span class="hljs-string">&#x27;@springernature/nature-hero/scss/10-settings/hero&#x27;</span>;
+<span class="hljs-keyword">@import</span> <span class="hljs-string">&#x27;@springernature/nature-hero/scss/50-components/hero&#x27;</span>;
+
+<span class="hljs-keyword">@import</span> <span class="hljs-string">&#x27;@springernature/brand-context/default/scss/60-utilities/links.scss&#x27;</span>;
+<span class="hljs-keyword">@import</span> <span class="hljs-string">&#x27;@springernature/brand-context/default/scss/60-utilities/positioning.scss&#x27;</span>;
+<span class="hljs-keyword">@import</span> <span class="hljs-string">&#x27;@springernature/brand-context/default/scss/60-utilities/spacing.scss&#x27;</span>;
+</code></pre>
+<h2>Template</h2>
+<p>Find a configurable template in the <a href="https://github.com/springernature/frontend-toolkits/tree/master/toolkits/nature/packages/nature-hero/view"><code>view</code> folder</a>. </p>
+<p>You can see an example in the <a href="https://github.com/springernature/frontend-toolkits/tree/master/toolkits/nature/packages/nature-hero/demo"><code>demo</code> folder</a>.</p>
+<h2>Help improve this page</h2>
+<p>If you’ve got a question, idea or suggestion about how to improve this component or guidance, post in the <a href="https://springernature.slack.com/archives/C75DHBTBP">#design-systems Slack channel</a>.</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+</body>
+</html>
