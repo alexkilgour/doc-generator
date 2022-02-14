@@ -1,7 +1,10 @@
 const fs = require('fs').promises;
 const fetch = require('node-fetch');
-const hljs = require('highlight.js');
+const Prism = require('prismjs');
+const loadLanguages = require('prismjs/components/');
 const marked = require('marked');
+
+loadLanguages(['scss', 'bash', 'shell']);
 
 function filterTokens(tokens) {
 	const header = [];
@@ -31,11 +34,13 @@ function filterTokens(tokens) {
 		const tokens = lexer.lex(body);
 		const filtered = filterTokens(tokens);
 		const html = marked.parser(filtered, {
-			highlight: function (code, _lang) {
-				const language = hljs.getLanguage(_lang) ? _lang : 'plaintext';
-				return hljs.highlight(code, {language}).value;
+			highlight: function (code, lang) {
+				if (Prism.languages && Prism.languages[lang]) {
+					return Prism.highlight(code, Prism.languages[lang], lang);
+				}
+				return Prism.highlight(code, Prism.languages.plaintext, 'plaintext');
 			},
-			langPrefix: 'hljs language-',
+			langPrefix: 'language-',
 			gfm: true
 		});
 
@@ -45,11 +50,12 @@ function filterTokens(tokens) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Example</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.26.0/themes/prism-okaidia.min.css">
 </head>
 <body>
   ${html}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.26.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.26.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha512-GP4x8UWxWyh4BMbyJGOGneiTbkrWEF5izsVJByzVLodP8CuJH/n936+yQDMJJrOPUHLgyPbLiGw2rXmdvGdXHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>`);
 	} catch (err) {
