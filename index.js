@@ -25,12 +25,64 @@ marked.setOptions({
 	}
 });
 
-// If code blocks don't specify a language, set to plaintext
-// avoids unstyled code blocks
-function defaultLanguage (token) {
+// Process code blocks for
+// 1. default language
+// 2. mermaid charting
+function processCodeBlock (token) {
+	// If code blocks don't specify a language, set to plaintext
+	// avoids unstyled code blocks
 	if (token.type === 'code' && token.lang === '') {
 		token.lang = 'plaintext';
 	}
+
+	// Mermaid charts
+	// Don't display the code, convert to html to render
+	if (token.type === 'code' && token.lang === 'mermaid') {
+		token.type = 'html';
+		token.raw = token.raw.replace('```mermaid', '<div class="mermaid">').replace('```', '</div>');
+		token.pre = false;
+		token.text = token.raw;
+	}
+}
+
+// Example render of a mermaid graph
+// Add to the existing markdown data
+async function createMermaid (tokens) {
+	const md = await fs.readFile('./mermaid.md', 'utf8');
+	const mermaidTokens = marked.lexer(md);
+	return [...tokens, ...mermaidTokens];
+}
+
+// Split the readme at the first h2
+// Return a header section and the rest of the readme
+function createSections (tokens) {
+	const sections = {};
+
+	// The first h2 marks the end of the header section and beginning of the readme
+	const StartOfReadme = tokens.findIndex(t => t.type === 'heading' && t.depth === 2);
+
+	// Split the README to create header section
+	if (StartOfReadme !== -1) {
+		sections.header = tokens.splice(0, StartOfReadme);
+	} else if (tokens[0].type === 'heading' && tokens[0].depth === 1) {
+		// If we don't find an h2 try and grab the title from first item
+		sections.header = tokens.splice(0, 1);
+	} else {
+		// If we don't find any of these generate our own
+		// Possibly by grabbing the name from the package.json
+		sections.header = [{
+			type: 'heading',
+			raw: '# My heading here\n\n',
+			depth: 1,
+			text: 'My heading here',
+			tokens: [{type: 'text', raw: 'My heading here', text: 'My heading here'}]
+		}];
+	}
+
+	// Rest of the tokens form the readme
+	sections.readme = tokens;
+
+	return sections;
 }
 
 (async () => {
@@ -39,28 +91,24 @@ function defaultLanguage (token) {
 		const body = await response.text();
 
 		// Convert markdown to tokens array
-		const tokens = marked.lexer(body);
-		// Process tokens
-		tokens.forEach(token => defaultLanguage(token));
-		// The first h2 marks the end of the header section and beginning of the readme
-		const StartOfReadme = tokens.findIndex(t => t.type === 'heading' && t.depth === 2);
-		// Header section
-		let header;
+		let tokens = marked.lexer(body);
 
-		// Split the README to create header section
-		if (StartOfReadme !== -1) {
-			header = tokens.splice(0, StartOfReadme);
-		} else {
-			// Can we handle readme that doesn't conform?
-			// Maybe we generate a title, then put the demo, then all the readme
-		}
+		// Add a mermaid graph for rendering
+		// https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/
+		tokens = await createMermaid(tokens);
+
+		// Process code block tokens
+		tokens.forEach(token => processCodeBlock(token));
+
+		// Split the markdown to make room for the demo
+		const docSections = createSections(tokens);
 
 		// Create toc Markdown
 		const tocMarkdown = toc(body, {firsth1: false}).content;
 
 		// Generate HTML from tokens
-		const htmlHeader = marked.parser(header);
-		const htmlReadme = marked.parser(tokens);
+		const htmlHeader = marked.parser(docSections.header);
+		const htmlReadme = marked.parser(docSections.readme);
 		const htmlToc = marked.parse(tocMarkdown);
 
 		// Write the result to a file
@@ -92,6 +140,9 @@ function defaultLanguage (token) {
   <!-- copy to clipboard -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.26.0/plugins/toolbar/prism-toolbar.min.js" integrity="sha512-YrvgEHAi5/3o2OT+/vh1z19oJXk/Kk0qdVKbjEFl9VRmcLTaWRYzVziZCvoGpJ2TrnV7rB8pnJcz1ioVJjgw2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.26.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js" integrity="sha512-pUNGXbOrc+Y3dm5z2ZN7JYQ/2Tq0jppMDOUsN4sQHVJ9AUQpaeERCUfYYBAnaRB9r8d4gtPKMWICNhm3tRr4Fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- mermaid -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad:true});
 </body>
 </html>`);
 	} catch (err) {
